@@ -6,17 +6,8 @@
 //
 import UIKit
 
-struct QuoteData : Codable {
-    var success : Bool
-    var data : QuoteList
-}
-
-struct QuoteList: Codable {
-    var quotes: [Quotes]
-}
-
-struct Quotes : Codable {
-    var qoute : String
-    var author : String
-    var cathegory : String
+struct Quote: Codable {
+    let quote: String
+    let author: String
+    let category: String
 }

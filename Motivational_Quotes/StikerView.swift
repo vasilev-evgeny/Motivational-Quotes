@@ -13,15 +13,19 @@ class StikerView : UIView {
     
     //MARK: - Create UI
     
-    let
+    var backGroundImageView : UIImageView = {
+        let view = UIImageView()
+        view.image = UIImage(named: "stiker")
+        return view
+    }()
     
     let quoteLabel : UILabel = {
         let label = UILabel()
-        label.text = "цитата даже даже"
+        label.text = "цитата"
         label.font = UIFont.systemFont(ofSize: 18, weight: .regular)
         label.textColor = .black
         label.textAlignment = .center
-        label.numberOfLines = 3
+        label.numberOfLines = 0
         return label
     }()
     
@@ -49,20 +53,75 @@ class StikerView : UIView {
         print("allilya")
     }
     
+    func loadRandomQuote() {
+            CitataManager.shared.loadQuotes { result in
+                DispatchQueue.main.async {
+                    switch result {
+                    case .success(let quotes):
+                        // Берём случайную цитату
+                        if let randomQuote = quotes.randomElement() {
+                            self.quoteLabel.text = randomQuote.quote
+                        } else {
+                            self.quoteLabel.text = "Цитата не найдена"
+                        }
+                    case .failure:
+                        self.quoteLabel.text = "Не удалось загрузить"
+                    }
+                }
+            }
+        }
+    
     //MARK: - Lifecycle
     
-    func viewDidLoad() {
-        setupViews()
-        setConstraints()
-    }
+    override init(frame: CGRect) {
+            super.init(frame: frame)
+            setupViews()
+            setConstraints()
+        }
+    
+    required init?(coder: NSCoder) {
+            fatalError("init(coder:) has not been implemented")
+        }
     
     private func setupViews() {
-        
+        addSubview(backGroundImageView)
+        addSubview(quoteLabel)
+        addSubview(saveButton)
+        addSubview(refreshButon)
     }
     
     //MARK: - setConstraints
     
     private func setConstraints() {
+        backGroundImageView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            backGroundImageView.topAnchor.constraint(equalTo: topAnchor),
+            backGroundImageView.leadingAnchor.constraint(equalTo: leadingAnchor),
+            backGroundImageView.trailingAnchor.constraint(equalTo: trailingAnchor),
+            backGroundImageView.bottomAnchor.constraint(equalTo: bottomAnchor)
+        ])
         
+        quoteLabel.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            quoteLabel.topAnchor.constraint(equalTo: topAnchor, constant: 20),
+            quoteLabel.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 20),
+            quoteLabel.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -20)
+        ])
+        
+        saveButton.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            saveButton.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -10),
+            saveButton.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 15),
+            saveButton.widthAnchor.constraint(equalToConstant: 20),
+            saveButton.heightAnchor.constraint(equalToConstant: 20)
+        ])
+        
+        refreshButon.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            refreshButon.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -10),
+            refreshButon.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -15),
+            refreshButon.widthAnchor.constraint(equalToConstant: 20),
+            refreshButon.heightAnchor.constraint(equalToConstant: 20)
+        ])
     }
 }
