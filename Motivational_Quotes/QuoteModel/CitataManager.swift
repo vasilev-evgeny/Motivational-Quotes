@@ -10,6 +10,8 @@ import UIKit
 final class CitataManager {
     static let shared = CitataManager()
     
+    var selectedCategories : [String] = []
+    
     func loadQuotes(completion: @escaping (Result<[Quote], Error>) -> Void) {
         guard let url = URL(string: "https://api.api-ninjas.com/v1/quotes") else {
             let error = NSError(domain: "Invalid URL", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid URL"])

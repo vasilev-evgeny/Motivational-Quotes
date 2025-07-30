@@ -68,6 +68,7 @@ class CategoryViewController : UIViewController {
         button.setTitleColor(UIColor.black, for: .normal)
         button.titleLabel?.font = UIFont.systemFont(ofSize: 13, weight: .regular)
         button.titleLabel?.textAlignment = .center
+        button.addTarget(self, action: #selector(doneButtonTapped), for: .touchUpInside)
         return button
     }()
     
@@ -77,6 +78,15 @@ class CategoryViewController : UIViewController {
         collectionView.delegate = self
         collectionView.dataSource = self
         collectionView.register(CategoryCell.self, forCellWithReuseIdentifier: "CategoryCell")
+    }
+    
+    //MARK: - Action Func
+    
+    @objc func doneButtonTapped() {
+        let vc = MainViewController()
+        navigationController?.navigationBar.isHidden = true
+        self.navigationController?.pushViewController(vc, animated: true)
+        print(CitataManager.shared.selectedCategories)
     }
     
     //MARK: - Lifecycle
@@ -160,6 +170,8 @@ extension CategoryViewController : UICollectionViewDelegate, UICollectionViewDel
             return UICollectionViewCell()
         }
         cell.label.text = CategoryList.shared.categoryList[indexPath.item]
+        let isSelected = CitataManager.shared.selectedCategories.contains(cell.label.text ?? "")
+                cell.backgroundImageView.image = isSelected ? UIImage(named: "cellSelectedBackgroundImage") : UIImage(named: "cellBackgroundImage")
         return cell
     }
     
@@ -168,4 +180,17 @@ extension CategoryViewController : UICollectionViewDelegate, UICollectionViewDel
         let height: CGFloat = 50
         return CGSize(width: width, height: height)
     }
-}
+    func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        guard let cell = collectionView.cellForItem(at: indexPath) as? CategoryCell,
+                     let categoryText = cell.label.text else { return }
+        if let index = CitataManager.shared.selectedCategories.firstIndex(of: categoryText) {
+            CitataManager.shared.selectedCategories.remove(at: index)
+            cell.backgroundImageView.image = UIImage(named: "cellBackgroundImage")
+                } else {
+                    CitataManager.shared.selectedCategories.append(categoryText)
+                    cell.backgroundImageView.image = UIImage(named: "cellSelectedBackgroundImage")
+                }
+                collectionView.reloadItems(at: [indexPath])
+            }
+    }
+

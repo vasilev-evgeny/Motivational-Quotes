@@ -111,7 +111,8 @@ class MainViewController: UIViewController, UIScrollViewDelegate {
     }
     
     @objc func categoryButtonTapped() {
-        addSticker()
+        let vc = CategoryViewController()
+        self.navigationController?.pushViewController(vc, animated: true)
     }
     
     func addSticker() {
@@ -144,6 +145,7 @@ class MainViewController: UIViewController, UIScrollViewDelegate {
     }
     
     private func setupViews() {
+        homeButton.isSelected = true
         view.backgroundColor = .white
         view.addSubview(topView)
         topView.addSubview(searchTextField)
@@ -188,7 +190,7 @@ class MainViewController: UIViewController, UIScrollViewDelegate {
         
         scrollView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            scrollView.topAnchor.constraint(equalTo: topView.bottomAnchor, constant: 25),
+            scrollView.topAnchor.constraint(equalTo: topView.bottomAnchor, constant: 35),
             scrollView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 30),
             scrollView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -30),
             scrollView.bottomAnchor.constraint(equalTo: bottomView.topAnchor)

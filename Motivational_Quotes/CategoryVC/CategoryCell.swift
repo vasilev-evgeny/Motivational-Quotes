@@ -28,6 +28,7 @@ class CategoryCell: UICollectionViewCell {
         super.init(frame: frame)
         setupViews()
         setConstraints()
+        addShadow()
     }
     
     required init?(coder: NSCoder) {
@@ -37,6 +38,16 @@ class CategoryCell: UICollectionViewCell {
     private func setupViews() {
         contentView.addSubview(backgroundImageView)
         contentView.addSubview(label)
+    }
+    
+    func addShadow() {
+        self.layer.shadowColor = UIColor.black.cgColor
+           self.layer.shadowOpacity = 0.3
+           self.layer.shadowOffset = CGSize(width: 0, height: 1)
+           self.layer.shadowRadius = 1
+           self.layer.cornerRadius = 12
+           self.clipsToBounds = false
+           self.layer.masksToBounds = false
     }
     
     private func setConstraints() {
