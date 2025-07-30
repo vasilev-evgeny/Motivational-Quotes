@@ -17,6 +17,7 @@ class CategoryViewController : UIViewController {
     let catLabel : UILabel = {
         let label = UILabel()
         label.text = "Categories"
+        label.textColor = .black
         label.font = UIFont.systemFont(ofSize: 16, weight: .bold)
         label.textAlignment = .center
         return label
@@ -25,6 +26,7 @@ class CategoryViewController : UIViewController {
     let whatLabel : UILabel = {
         let label = UILabel()
         label.text = "What makes you\nfeel that way?"
+        label.textColor = .black
         label.font = UIFont.systemFont(ofSize: 28, weight: .black)
         label.textAlignment = .center
         return label
@@ -33,6 +35,7 @@ class CategoryViewController : UIViewController {
     let selectLabel : UILabel = {
         let label = UILabel()
         label.text = "you can select more than one"
+        label.textColor = .black
         label.font = UIFont.systemFont(ofSize: 15, weight: .regular)
         label.textAlignment = .center
         return label
@@ -47,6 +50,25 @@ class CategoryViewController : UIViewController {
         cv.backgroundColor = .clear
         cv.showsVerticalScrollIndicator = false
         return cv
+    }()
+    
+    let changeLabel : UILabel = {
+        let label = UILabel()
+        label.text = "you can change it later"
+        label.textColor = .black
+        label.font = UIFont.systemFont(ofSize: 15, weight: .regular)
+        label.textAlignment = .center
+        return label
+    }()
+    
+    let doneButton : UIButton = {
+        let button = UIButton()
+        button.setBackgroundImage(UIImage(named: "cellSelectedBackgroundImage"), for: .normal)
+        button.setTitle("done", for: .normal)
+        button.setTitleColor(UIColor.black, for: .normal)
+        button.titleLabel?.font = UIFont.systemFont(ofSize: 13, weight: .regular)
+        button.titleLabel?.textAlignment = .center
+        return button
     }()
     
     //MARK: - Set Delegates
@@ -72,6 +94,8 @@ class CategoryViewController : UIViewController {
         view.addSubview(whatLabel)
         view.addSubview(selectLabel)
         view.addSubview(collectionView)
+        view.addSubview(changeLabel)
+        view.addSubview(doneButton)
     }
     
     //MARK: - setConstraints
@@ -95,13 +119,29 @@ class CategoryViewController : UIViewController {
             selectLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor)
         ])
         
+        doneButton.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            doneButton.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -120),
+            doneButton.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            doneButton.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 137),
+            doneButton.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -137),
+        ])
+        
+        changeLabel.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            changeLabel.bottomAnchor.constraint(equalTo: doneButton.bottomAnchor, constant: -60),
+            changeLabel.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            changeLabel.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 72),
+            changeLabel.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -72),
+        ])
+        
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             collectionView.topAnchor.constraint(equalTo: selectLabel.bottomAnchor, constant: 15),
             collectionView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
             collectionView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 80),
             collectionView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -80),
-            collectionView.bottomAnchor.constraint(equalTo: view.bottomAnchor, constant: -150),
+            collectionView.bottomAnchor.constraint(equalTo: changeLabel.topAnchor, constant: -24),
         ])
     }
 }
@@ -119,6 +159,7 @@ extension CategoryViewController : UICollectionViewDelegate, UICollectionViewDel
                 CategoryCell else {
             return UICollectionViewCell()
         }
+        cell.label.text = CategoryList.shared.categoryList[indexPath.item]
         return cell
     }
     
