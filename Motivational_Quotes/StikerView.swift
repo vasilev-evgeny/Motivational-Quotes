@@ -21,7 +21,7 @@ class StikerView : UIView {
     
     let quoteLabel : UILabel = {
         let label = UILabel()
-        label.text = "цитата"
+        label.text = "Загрузка цитаты"
         label.font = UIFont.systemFont(ofSize: 18, weight: .regular)
         label.textColor = .black
         label.textAlignment = .center
@@ -58,7 +58,6 @@ class StikerView : UIView {
                 DispatchQueue.main.async {
                     switch result {
                     case .success(let quotes):
-                        // Берём случайную цитату
                         if let randomQuote = quotes.randomElement() {
                             self.quoteLabel.text = randomQuote.quote
                         } else {
@@ -70,6 +69,16 @@ class StikerView : UIView {
                 }
             }
         }
+    
+    func addShadow() {
+        self.layer.shadowColor = UIColor.black.cgColor
+           self.layer.shadowOpacity = 0.3
+           self.layer.shadowOffset = CGSize(width: 0, height: 1)
+           self.layer.shadowRadius = 1
+           self.layer.cornerRadius = 12
+           self.clipsToBounds = false
+           self.layer.masksToBounds = false
+    }
     
     //MARK: - Lifecycle
     
@@ -88,6 +97,7 @@ class StikerView : UIView {
         addSubview(quoteLabel)
         addSubview(saveButton)
         addSubview(refreshButon)
+        addShadow()
     }
     
     //MARK: - setConstraints
