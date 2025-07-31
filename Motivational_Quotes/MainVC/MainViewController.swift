@@ -126,12 +126,16 @@ class MainViewController: UIViewController, UIScrollViewDelegate, UITextFieldDel
         sender.isSelected = true
     }
     
-    private func loadInitialQuotes() {
+     func loadInitialQuotes() {
+        let defaults = UserDefaults.standard
+        guard let savedCategories = defaults.stringArray(forKey: Constants.catKey) else {
+            return
+        }
+        CitataManager.shared.selectedCategories = savedCategories
         let loader = UIActivityIndicatorView(style: .large)
         loader.center = view.center
         loader.startAnimating()
         view.addSubview(loader)
-        
         CitataManager.shared.loadCitatesForCategories { [weak self] in
             loader.removeFromSuperview()
             self?.updateStickers()
@@ -139,18 +143,15 @@ class MainViewController: UIViewController, UIScrollViewDelegate, UITextFieldDel
     }
     
     private func updateStickers() {
-        // Удаляем все текущие стикеры
-        stickersStackView.arrangedSubviews.forEach {
-            stickersStackView.removeArrangedSubview($0)
-            $0.removeFromSuperview()
+        while stickersStackView.arrangedSubviews.count > CitataManager.shared.selectedCategories.count {
+            if let lastSticker = stickersStackView.arrangedSubviews.last {
+                stickersStackView.removeArrangedSubview(lastSticker)
+                lastSticker.removeFromSuperview()
+            }
         }
-        
-        // Добавляем новые стикеры для всех выбранных категорий
-        for _ in CitataManager.shared.selectedCategories {
+        while stickersStackView.arrangedSubviews.count < CitataManager.shared.selectedCategories.count {
             addSticker()
         }
-        
-        // Заполняем стикеры данными
         CitataManager.shared.fillStickers(in: stickersStackView)
     }
     
