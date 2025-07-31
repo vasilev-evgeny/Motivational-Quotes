@@ -261,46 +261,53 @@ class MainViewController: UIViewController, UIScrollViewDelegate, UITextFieldDel
     
     //MARK: - Search
     
-    func getAllQuotesWithViews() -> [(text: String, sticker: StikerView, index: Int)] {
-        var quotesData: [(text: String, sticker: StikerView, index: Int)] = []
-        
-        for (index, view) in stickersStackView.arrangedSubviews.enumerated() {
-            guard let sticker = view as? StikerView, let quoteText = sticker.quoteLabel.text else { continue }
-            quotesData.append((text: quoteText, sticker: sticker, index: index))
-        }
-        
-        return quotesData
-    }
-    
-    func highlightMatchingStickers(searchText: String) {
-        let quotesData = getAllQuotesWithViews()
-        var foundFirstMatch = false
-        
-        for (text, sticker, _) in quotesData {
-            let originalAttributes: [NSAttributedString.Key: Any] = [
-                .foregroundColor: UIColor.black,
-                .font: sticker.quoteLabel.font ?? UIFont.systemFont(ofSize: 17)
-            ]
-            let attributedString = NSMutableAttributedString(string: text, attributes: originalAttributes)
+    func getAllQuotesWithViews(completion: @escaping ([(text: String, sticker: StikerView, index: Int)]) -> Void) {
+        DispatchQueue.main.async {
+            var quotesData: [(text: String, sticker: StikerView, index: Int)] = []
             
-            if !searchText.isEmpty && text.lowercased().contains(searchText.lowercased()) {
-                attributedString.highlight(text: searchText, with: .red)
-                if !foundFirstMatch {
-                    let offset = sticker.frame.origin.y - 50
-                    scrollView.setContentOffset(CGPoint(x: 0, y: offset), animated: true)
-                    foundFirstMatch = true
-                }
-                
-                sticker.isHidden = false
-            } else if searchText.isEmpty {
-                sticker.isHidden = false
-            } else {
-                sticker.isHidden = true
+            for (index, view) in self.stickersStackView.arrangedSubviews.enumerated() {
+                guard let sticker = view as? StikerView, let quoteText = sticker.quoteLabel.text else { continue }
+                quotesData.append((text: quoteText, sticker: sticker, index: index))
             }
-            sticker.quoteLabel.attributedText = attributedString
+            
+            completion(quotesData)
         }
     }
-    
+
+    func highlightMatchingStickers(searchText: String) {
+        getAllQuotesWithViews { [weak self] quotesData in
+            DispatchQueue.main.async {
+                guard let self = self else { return }
+                var foundFirstMatch = false
+                var firstMatchOffset: CGFloat = 0
+                for (text, sticker, _) in quotesData {
+                    if !searchText.isEmpty && text.lowercased().contains(searchText.lowercased()) {
+                        firstMatchOffset = sticker.frame.origin.y - 50
+                        foundFirstMatch = true
+                        break
+                    }
+                }
+                if searchText.isEmpty {
+                    self.scrollView.setContentOffset(.zero, animated: true)
+                } else if foundFirstMatch {
+                    self.scrollView.setContentOffset(CGPoint(x: 0, y: firstMatchOffset), animated: true)
+                }
+                for (text, sticker, _) in quotesData {
+                    let attributedString = NSMutableAttributedString(string: text)
+                    if !searchText.isEmpty && text.lowercased().contains(searchText.lowercased()) {
+                        attributedString.highlight(text: searchText, with: .red)
+                        sticker.isHidden = false
+                    } else if searchText.isEmpty {
+                        sticker.isHidden = false
+                    } else {
+                        sticker.isHidden = true
+                    }
+                    sticker.quoteLabel.attributedText = attributedString
+                }
+            }
+        }
+    }
+   
     // MARK: - UITextFieldDelegate
     
     func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
@@ -313,7 +320,9 @@ class MainViewController: UIViewController, UIScrollViewDelegate, UITextFieldDel
     }
     
     func textFieldShouldClear(_ textField: UITextField) -> Bool {
-        highlightMatchingStickers(searchText: "")
+        DispatchQueue.main.async {
+            self.highlightMatchingStickers(searchText: "")
+        }
         return true
     }
     
