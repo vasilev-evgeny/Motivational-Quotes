@@ -331,7 +331,6 @@ class MainViewController: UIViewController, UIScrollViewDelegate, UITextFieldDel
     }
 }
 
-
 extension NSMutableAttributedString {
     func highlight(text: String, with color: UIColor) {
         let range = (self.string.lowercased() as NSString).range(of: text.lowercased())
