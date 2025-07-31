@@ -8,16 +8,35 @@
 import UIKit
 
 final class CitataManager {
+    
     static let shared = CitataManager()
     
     var selectedCategories : [String] = []
+    var quotesByCategory : [String: [Quote]] = [:]
+     var allQuotes : [Quote] = []
     
-    func loadQuotes(completion: @escaping (Result<[Quote], Error>) -> Void) {
-        guard let url = URL(string: "https://api.api-ninjas.com/v1/quotes") else {
-            let error = NSError(domain: "Invalid URL", code: 0, userInfo: [NSLocalizedDescriptionKey: "Invalid URL"])
-            completion(.failure(error))
-            return
+    private let baseURLString = "https://api.api-ninjas.com/v1/quotes"
+    var url = URL(string: "https://api.api-ninjas.com/v1/quotes")
+    
+    func loadCitatesForCategories() {
+        guard !selectedCategories.isEmpty else { return }
+            for category in selectedCategories {
+                let urlString = "\(baseURLString)?category=\(category)"
+                let url = URL(string: urlString)
+                loadQuotes(url: url!) { [weak self] result in
+                    DispatchQueue.main.async {
+                        switch result {
+                        case .success(let quotes):
+                            self!.quotesByCategory[category] = quotes
+                        case .failure(let error):
+                            print("Ошибка загрузки для категории \(category): \(error)")
+                        }
+                    }
+                }
+            }
         }
+    
+    func loadQuotes(url: URL,completion: @escaping (Result<[Quote], Error>) -> Void) {
         
         var request = URLRequest(url: url)
         request.setValue("qUiYfR8gL87+IGZc+6Q5+g==h1xsANlr8cCWUEQ5", forHTTPHeaderField: "X-Api-Key")
@@ -42,4 +61,22 @@ final class CitataManager {
             }
         }.resume()
     }
+    
+    func loadRandomQuote(view : StikerView) {
+        CitataManager.shared.loadQuotes(url: CitataManager.shared.url!) { result in
+            DispatchQueue.main.async {
+                switch result {
+                case .success(let quotes):
+                    if let randomQuote = quotes.randomElement() {
+                        view.quoteLabel.text = randomQuote.quote
+                    } else {
+                        view.quoteLabel.text = "Цитата не найдена"
+                    }
+                case .failure:
+                    view.quoteLabel.text = "Не удалось загрузить"
+                }
+            }
+        }
+    }
 }
+

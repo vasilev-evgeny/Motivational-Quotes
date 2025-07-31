@@ -101,14 +101,8 @@ class MainViewController: UIViewController, UIScrollViewDelegate {
         view.spacing = 43
         return view
     }()
-    
-    let stiker1 = StikerView()
-    
+        
     //MARK: - Action Func
-    
-    func setQuotes() {
-        stiker1.loadRandomQuote()
-    }
     
     @objc func categoryButtonTapped() {
         let vc = CategoryViewController()
@@ -117,7 +111,7 @@ class MainViewController: UIViewController, UIScrollViewDelegate {
     
     func addSticker() {
         let stiker = StikerView()
-        stiker.loadRandomQuote()
+        CitataManager.shared.loadRandomQuote(view: stiker)
         stickersStackView.addArrangedSubview(stiker)
     }
     
@@ -140,7 +134,6 @@ class MainViewController: UIViewController, UIScrollViewDelegate {
         super.viewDidLoad()
         setupViews()
         setConstraints()
-        setQuotes()
         setDelegates()
     }
     
@@ -154,7 +147,6 @@ class MainViewController: UIViewController, UIScrollViewDelegate {
         
         view.addSubview(scrollView)
         scrollView.addSubview(stickersStackView)
-        stickersStackView.addArrangedSubview(stiker1)
         view.addSubview(bottomView)
         bottomView.addSubview(bottomButtonsStackView)
         bottomButtonsStackView.addArrangedSubview(savedQuotesButton)

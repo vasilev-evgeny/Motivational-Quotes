@@ -53,8 +53,8 @@ class StikerView : UIView {
         print("allilya")
     }
     
-    func loadRandomQuote() {
-            CitataManager.shared.loadQuotes { result in
+    func loadRandomQuote(label : UILabel) {
+        CitataManager.shared.loadQuotes(url: CitataManager.shared.url!) { result in
                 DispatchQueue.main.async {
                     switch result {
                     case .success(let quotes):
