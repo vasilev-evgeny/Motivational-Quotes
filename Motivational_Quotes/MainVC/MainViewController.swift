@@ -7,13 +7,15 @@
 
 import UIKit
 
-class MainViewController: UIViewController, UIScrollViewDelegate {
+class MainViewController: UIViewController, UIScrollViewDelegate, UITextFieldDelegate {
     
     enum Constants {
-        
+        static let catKey = "SelectedCategories"
     }
     
     var citata = Quote(quote: String(), author: String(), category: String())
+    private var allStickersTexts : [String] = []
+    
     
     //MARK: - Create UI
     
@@ -29,6 +31,9 @@ class MainViewController: UIViewController, UIScrollViewDelegate {
         field.layer.borderWidth = 0.5
         field.layer.borderColor = UIColor.black.cgColor
         field.layer.cornerRadius = 7
+        field.returnKeyType = .done
+        field.clearButtonMode = .whileEditing
+        field.autocorrectionType = .no
         return field
     }()
     
@@ -101,7 +106,7 @@ class MainViewController: UIViewController, UIScrollViewDelegate {
         view.spacing = 43
         return view
     }()
-        
+    
     //MARK: - Action Func
     
     @objc func categoryButtonTapped() {
@@ -111,21 +116,49 @@ class MainViewController: UIViewController, UIScrollViewDelegate {
     
     func addSticker() {
         let stiker = StikerView()
-        CitataManager.shared.loadRandomQuote(view: stiker)
         stickersStackView.addArrangedSubview(stiker)
     }
     
     @objc func bottomButtonTapped(sender: UIButton) {
         [savedQuotesButton, homeButton, postButton].forEach { button in
-                button?.isSelected = false
-            }
-            sender.isSelected = true
+            button?.isSelected = false
+        }
+        sender.isSelected = true
+    }
+    
+    private func loadInitialQuotes() {
+        let loader = UIActivityIndicatorView(style: .large)
+        loader.center = view.center
+        loader.startAnimating()
+        view.addSubview(loader)
+        
+        CitataManager.shared.loadCitatesForCategories { [weak self] in
+            loader.removeFromSuperview()
+            self?.updateStickers()
+        }
+    }
+    
+    private func updateStickers() {
+        // Удаляем все текущие стикеры
+        stickersStackView.arrangedSubviews.forEach {
+            stickersStackView.removeArrangedSubview($0)
+            $0.removeFromSuperview()
+        }
+        
+        // Добавляем новые стикеры для всех выбранных категорий
+        for _ in CitataManager.shared.selectedCategories {
+            addSticker()
+        }
+        
+        // Заполняем стикеры данными
+        CitataManager.shared.fillStickers(in: stickersStackView)
     }
     
     //MARK: - Set Delegates
     
     func setDelegates() {
         scrollView.delegate = self
+        searchTextField.delegate = self
     }
     
     //MARK: - Lifecycle
@@ -135,6 +168,7 @@ class MainViewController: UIViewController, UIScrollViewDelegate {
         setupViews()
         setConstraints()
         setDelegates()
+        loadInitialQuotes()
     }
     
     private func setupViews() {
@@ -223,5 +257,86 @@ class MainViewController: UIViewController, UIScrollViewDelegate {
         ])
     }
     
+    
+    //MARK: - Search
+    
+    func getAllQuotesWithViews() -> [(text: String, sticker: StikerView, index: Int)] {
+        var quotesData: [(text: String, sticker: StikerView, index: Int)] = []
+        
+        for (index, view) in stickersStackView.arrangedSubviews.enumerated() {
+            guard let sticker = view as? StikerView, let quoteText = sticker.quoteLabel.text else { continue }
+            quotesData.append((text: quoteText, sticker: sticker, index: index))
+        }
+        
+        return quotesData
+    }
+    
+    func highlightMatchingStickers(searchText: String) {
+        let quotesData = getAllQuotesWithViews()
+        var foundFirstMatch = false
+        
+        for (text, sticker, _) in quotesData {
+            let originalAttributes: [NSAttributedString.Key: Any] = [
+                .foregroundColor: UIColor.black,
+                .font: sticker.quoteLabel.font ?? UIFont.systemFont(ofSize: 17)
+            ]
+            let attributedString = NSMutableAttributedString(string: text, attributes: originalAttributes)
+            
+            if !searchText.isEmpty && text.lowercased().contains(searchText.lowercased()) {
+                attributedString.highlight(text: searchText, with: .red)
+                if !foundFirstMatch {
+                    let offset = sticker.frame.origin.y - 50
+                    scrollView.setContentOffset(CGPoint(x: 0, y: offset), animated: true)
+                    foundFirstMatch = true
+                }
+                
+                sticker.isHidden = false
+            } else if searchText.isEmpty {
+                sticker.isHidden = false
+            } else {
+                sticker.isHidden = true
+            }
+            sticker.quoteLabel.attributedText = attributedString
+        }
+    }
+    
+    // MARK: - UITextFieldDelegate
+    
+    func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
+        let currentText = textField.text ?? ""
+        guard let stringRange = Range(range, in: currentText) else { return false }
+        let updatedText = currentText.replacingCharacters(in: stringRange, with: string)
+        
+        highlightMatchingStickers(searchText: updatedText)
+        return true
+    }
+    
+    func textFieldShouldClear(_ textField: UITextField) -> Bool {
+        highlightMatchingStickers(searchText: "")
+        return true
+    }
+    
+    func textFieldDidEndEditing(_ textField: UITextField) {
+        if let searchText = textField.text, !searchText.isEmpty {
+            highlightMatchingStickers(searchText: searchText)
+        } else {
+            highlightMatchingStickers(searchText: "")
+        }
+    }
+    
+    func textFieldShouldReturn(_ textField: UITextField) -> Bool {
+        textField.resignFirstResponder()
+        return true
+    }
 }
 
+
+extension NSMutableAttributedString {
+    func highlight(text: String, with color: UIColor) {
+        let range = (self.string.lowercased() as NSString).range(of: text.lowercased())
+        if range.location != NSNotFound {
+            self.addAttribute(.foregroundColor, value: color, range: range)
+            self.addAttribute(.backgroundColor, value: color.withAlphaComponent(0.3), range: range)
+        }
+    }
+}

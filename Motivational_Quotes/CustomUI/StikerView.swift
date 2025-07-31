@@ -11,6 +11,8 @@ class StikerView : UIView {
         
     }
     
+    var quote: Quote?
+    
     //MARK: - Create UI
     
     var backGroundImageView : UIImageView = {
@@ -26,6 +28,7 @@ class StikerView : UIView {
         label.textColor = .black
         label.textAlignment = .center
         label.numberOfLines = 0
+        label.adjustsFontForContentSizeCategory = true
         return label
     }()
     
@@ -43,6 +46,16 @@ class StikerView : UIView {
         return button
     }()
     
+    let categoryLabel : UILabel = {
+        let label = UILabel()
+        label.text = "категория: "
+        label.font = UIFont.systemFont(ofSize: 10, weight: .regular)
+        label.textColor = .black
+        label.textAlignment = .center
+        label.numberOfLines = 1
+        return label
+    }()
+    
     //MARK: - Action Func
     
     @objc func saveButtonTapped() {
@@ -52,23 +65,6 @@ class StikerView : UIView {
     @objc func refreshButtonTapped() {
         print("allilya")
     }
-    
-    func loadRandomQuote(label : UILabel) {
-        CitataManager.shared.loadQuotes(url: CitataManager.shared.url!) { result in
-                DispatchQueue.main.async {
-                    switch result {
-                    case .success(let quotes):
-                        if let randomQuote = quotes.randomElement() {
-                            self.quoteLabel.text = randomQuote.quote
-                        } else {
-                            self.quoteLabel.text = "Цитата не найдена"
-                        }
-                    case .failure:
-                        self.quoteLabel.text = "Не удалось загрузить"
-                    }
-                }
-            }
-        }
     
     func addShadow() {
         self.layer.shadowColor = UIColor.black.cgColor
@@ -97,6 +93,7 @@ class StikerView : UIView {
         addSubview(quoteLabel)
         addSubview(saveButton)
         addSubview(refreshButon)
+        addSubview(categoryLabel)
         addShadow()
     }
     
@@ -132,6 +129,11 @@ class StikerView : UIView {
             refreshButon.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -15),
             refreshButon.widthAnchor.constraint(equalToConstant: 20),
             refreshButon.heightAnchor.constraint(equalToConstant: 20)
+        ])
+        categoryLabel.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            categoryLabel.bottomAnchor.constraint(equalTo: bottomAnchor),
+            categoryLabel.centerXAnchor.constraint(equalTo: centerXAnchor)
         ])
     }
 }

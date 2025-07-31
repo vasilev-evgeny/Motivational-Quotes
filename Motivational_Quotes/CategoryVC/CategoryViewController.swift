@@ -83,9 +83,25 @@ class CategoryViewController : UIViewController {
     //MARK: - Action Func
     
     @objc func doneButtonTapped() {
+        CitataManager.shared.saveSelectedCategories()
         let vc = MainViewController()
         navigationController?.navigationBar.isHidden = true
         self.navigationController?.pushViewController(vc, animated: true)
+        for arrangedSubview in vc.stickersStackView.arrangedSubviews {
+            vc.stickersStackView.removeArrangedSubview(arrangedSubview)
+            arrangedSubview.removeFromSuperview()
+            }
+        let loader = UIActivityIndicatorView(style: .large)
+            loader.center = vc.view.center
+            loader.startAnimating()
+            vc.view.addSubview(loader)
+        CitataManager.shared.loadCitatesForCategories {
+            loader.removeFromSuperview()
+            for _ in CitataManager.shared.selectedCategories {
+                vc.addSticker()
+            }
+            CitataManager.shared.fillStickers(in: vc.stickersStackView)
+        }
         print(CitataManager.shared.selectedCategories)
     }
     
@@ -96,6 +112,10 @@ class CategoryViewController : UIViewController {
         setupViews()
         setConstraints()
         setDelegates()
+        let defaults = UserDefaults.standard
+            if let savedCategories = defaults.array(forKey: "SelectedCategories") as? [String] {
+                CitataManager.shared.selectedCategories = savedCategories
+            }
     }
     
     private func setupViews() {
@@ -170,6 +190,7 @@ extension CategoryViewController : UICollectionViewDelegate, UICollectionViewDel
             return UICollectionViewCell()
         }
         cell.label.text = CategoryList.shared.categoryList[indexPath.item]
+      
         let isSelected = CitataManager.shared.selectedCategories.contains(cell.label.text ?? "")
                 cell.backgroundImageView.image = isSelected ? UIImage(named: "cellSelectedBackgroundImage") : UIImage(named: "cellBackgroundImage")
         return cell
