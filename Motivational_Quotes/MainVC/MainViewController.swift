@@ -79,6 +79,7 @@ class MainViewController: UIViewController, UIScrollViewDelegate, UITextFieldDel
         let button = UIButton()
         button.setImage(UIImage(named: "saveButtonImage"), for: .normal)
         button.addTarget(self, action: #selector(bottomButtonTapped), for: .touchUpInside)
+        button.addTarget(self, action: #selector(savedButtonTapped), for: .touchUpInside)
         button.setBackgroundImage(UIImage(named:"selectedButtonImage"), for: .selected)
         return button
     }()
@@ -95,6 +96,7 @@ class MainViewController: UIViewController, UIScrollViewDelegate, UITextFieldDel
         let button = UIButton()
         button.setImage(UIImage(named: "postButtonImage"), for: .normal)
         button.addTarget(self, action: #selector(bottomButtonTapped), for: .touchUpInside)
+        button.addTarget(self, action: #selector(postButtonTapped), for: .touchUpInside)
         button.setBackgroundImage(UIImage(named:"selectedButtonImage"), for: .selected)
         return button
     }()
@@ -124,6 +126,18 @@ class MainViewController: UIViewController, UIScrollViewDelegate, UITextFieldDel
             button?.isSelected = false
         }
         sender.isSelected = true
+    }
+    
+    @objc func savedButtonTapped() {
+        let vc = SavedViewController()
+        navigationController?.navigationBar.isHidden = true
+        self.navigationController?.pushViewController(vc, animated: true)
+    }
+    
+    @objc func postButtonTapped() {
+        let vc = PostViewController()
+        navigationController?.navigationBar.isHidden = true
+        self.navigationController?.pushViewController(vc, animated: true)
     }
     
      func loadInitialQuotes() {
@@ -170,6 +184,7 @@ class MainViewController: UIViewController, UIScrollViewDelegate, UITextFieldDel
         setConstraints()
         setDelegates()
         loadInitialQuotes()
+        homeButton.isSelected = true
     }
     
     private func setupViews() {
@@ -264,7 +279,6 @@ class MainViewController: UIViewController, UIScrollViewDelegate, UITextFieldDel
     func getAllQuotesWithViews(completion: @escaping ([(text: String, sticker: StikerView, index: Int)]) -> Void) {
         DispatchQueue.main.async {
             var quotesData: [(text: String, sticker: StikerView, index: Int)] = []
-            
             for (index, view) in self.stickersStackView.arrangedSubviews.enumerated() {
                 guard let sticker = view as? StikerView, let quoteText = sticker.quoteLabel.text else { continue }
                 quotesData.append((text: quoteText, sticker: sticker, index: index))

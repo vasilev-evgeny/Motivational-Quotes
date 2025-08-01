@@ -21,7 +21,7 @@ class StikerView : UIView {
         return view
     }()
     
-    let quoteLabel : UILabel = {
+    var quoteLabel : UILabel = {
         let label = UILabel()
         label.text = "Загрузка цитаты"
         label.font = UIFont.systemFont(ofSize: 18, weight: .regular)
@@ -59,11 +59,19 @@ class StikerView : UIView {
     //MARK: - Action Func
     
     @objc func saveButtonTapped() {
-        print("bogy slava")
-    }
+            guard let quote = self.quote else { return }
+            CitataManager.shared.saveQuote(quote)
+            UIView.animate(withDuration: 0.2, animations: {
+                self.saveButton.transform = CGAffineTransform(scaleX: 1.3, y: 1.3)
+            }) { _ in
+                UIView.animate(withDuration: 0.2) {
+                    self.saveButton.transform = .identity
+                }
+            }
+        }
     
     @objc func refreshButtonTapped() {
-        print("allilya")
+        CitataManager.shared.loadRandomQuote(view: self)
     }
     
     func addShadow() {
