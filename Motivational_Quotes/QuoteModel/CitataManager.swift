@@ -25,34 +25,72 @@ final class CitataManager {
         print(UserDefaults.standard.stringArray(forKey: catKey)!)
     }
     
+//    func loadCitatesForCategories(completion: @escaping () -> Void) {
+//        guard !selectedCategories.isEmpty else {
+//            completion()
+//            return
+//        }
+//        var loadedCount = 0
+//        let expectedCount = selectedCategories.count
+//        
+//        for category in selectedCategories {
+//            let urlString = "\(baseURLString)?category=\(category)"
+//            guard let url = URL(string: urlString) else {
+//                loadedCount += 1
+//                continue
+//            }
+//            loadQuotes(url: url) { [weak self] result in
+//                DispatchQueue.main.async {
+//                    switch result {
+//                    case .success(let quotes):
+//                        self!.quotesByCategory[category] = quotes
+//                    case .failure(let error):
+//                        print("Ошибка загрузки для категории \(category): \(error)")
+//                    }
+//                    loadedCount += 1
+//                    if loadedCount == expectedCount {
+//                        completion()
+//                    }
+//                }
+//            }
+//        }
+//    }
+    
     func loadCitatesForCategories(completion: @escaping () -> Void) {
+        // Очищаем предыдущие цитаты
+        quotesByCategory.removeAll()
+        allQuotes.removeAll()
+        
         guard !selectedCategories.isEmpty else {
             completion()
             return
         }
-        var loadedCount = 0
-        let expectedCount = selectedCategories.count
+        
+        let group = DispatchGroup()
         
         for category in selectedCategories {
+            group.enter()
+            
             let urlString = "\(baseURLString)?category=\(category)"
             guard let url = URL(string: urlString) else {
-                loadedCount += 1
+                group.leave()
                 continue
             }
+            
             loadQuotes(url: url) { [weak self] result in
-                DispatchQueue.main.async {
-                    switch result {
-                    case .success(let quotes):
-                        self!.quotesByCategory[category] = quotes
-                    case .failure(let error):
-                        print("Ошибка загрузки для категории \(category): \(error)")
-                    }
-                    loadedCount += 1
-                    if loadedCount == expectedCount {
-                        completion()
-                    }
+                switch result {
+                case .success(let quotes):
+                    self?.quotesByCategory[category] = quotes
+                    self?.allQuotes.append(contentsOf: quotes)
+                case .failure(let error):
+                    print("Ошибка загрузки для категории \(category): \(error)")
                 }
+                group.leave()
             }
+        }
+        
+        group.notify(queue: .main) {
+            completion()
         }
     }
     

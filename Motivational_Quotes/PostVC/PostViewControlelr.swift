@@ -175,12 +175,14 @@ class PostViewController : UIViewController {
     @objc func homeButtonTapped() {
         let vc = MainViewController()
         navigationController?.navigationBar.isHidden = true
+        vc.modalTransitionStyle = .crossDissolve
         self.navigationController?.pushViewController(vc, animated: true)
     }
     
     @objc func saveButtonTapped() {
         let vc = SavedViewController()
         navigationController?.navigationBar.isHidden = true
+        vc.modalTransitionStyle = .crossDissolve
         self.navigationController?.pushViewController(vc, animated: true)
     }
     

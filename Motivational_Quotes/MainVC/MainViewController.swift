@@ -140,19 +140,50 @@ class MainViewController: UIViewController, UIScrollViewDelegate, UITextFieldDel
         self.navigationController?.pushViewController(vc, animated: true)
     }
     
-     func loadInitialQuotes() {
+//     func loadInitialQuotes() {
+//        let defaults = UserDefaults.standard
+//        guard let savedCategories = defaults.stringArray(forKey: Constants.catKey) else {
+//            return
+//        }
+//        CitataManager.shared.selectedCategories = savedCategories
+//        let loader = UIActivityIndicatorView(style: .large)
+//        loader.center = view.center
+//        loader.startAnimating()
+//        view.addSubview(loader)
+//        CitataManager.shared.loadCitatesForCategories { [weak self] in
+//            loader.removeFromSuperview()
+//            self?.updateStickers()
+//        }
+//    }
+    
+    func loadInitialQuotes() {
         let defaults = UserDefaults.standard
-        guard let savedCategories = defaults.stringArray(forKey: Constants.catKey) else {
-            return
-        }
+        // Загружаем сохраненные категории или используем дефолтные
+        let savedCategories = defaults.stringArray(forKey: Constants.catKey) ?? ["inspirational", "motivational"]
         CitataManager.shared.selectedCategories = savedCategories
+        
+        // Очищаем старые стикеры
+        stickersStackView.arrangedSubviews.forEach { view in
+            view.removeFromSuperview()
+        }
+        
+        // Добавляем новые стикеры
+        for _ in 0..<CitataManager.shared.selectedCategories.count {
+            addSticker()
+        }
+        
+        // Показываем индикатор загрузки
         let loader = UIActivityIndicatorView(style: .large)
         loader.center = view.center
         loader.startAnimating()
         view.addSubview(loader)
+        
+        // Загружаем цитаты
         CitataManager.shared.loadCitatesForCategories { [weak self] in
-            loader.removeFromSuperview()
-            self?.updateStickers()
+            DispatchQueue.main.async {
+                loader.removeFromSuperview()
+                self?.updateStickers()
+            }
         }
     }
     

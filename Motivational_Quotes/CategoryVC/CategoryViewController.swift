@@ -83,40 +83,75 @@ class CategoryViewController : UIViewController {
     //MARK: - Action Func
     
     @objc func doneButtonTapped() {
-        let defaults = UserDefaults.standard
-        let currentSavedCategories = defaults.stringArray(forKey: "SelectedCategories") ?? []
-        let previousCategories = CitataManager.shared.selectedCategories
-        if currentSavedCategories == previousCategories {
-            print("Категории не изменились — обновление не требуется")
-            navigationController?.popViewController(animated: true)
-            return
-        }
+        // Сохраняем выбранные категории
         CitataManager.shared.saveSelectedCategories()
+        
+        // Получаем MainViewController из navigation stack
         if let mainVC = navigationController?.viewControllers.first(where: { $0 is MainViewController }) as? MainViewController {
-            let difference = CitataManager.shared.selectedCategories.count - mainVC.stickersStackView.arrangedSubviews.count
-            if difference > 0 {
-                for _ in 0..<difference {
-                    mainVC.addSticker()
-                }
-            } else if difference < 0 {
-                for _ in 0..<abs(difference) {
-                    if let lastSticker = mainVC.stickersStackView.arrangedSubviews.last {
-                        mainVC.stickersStackView.removeArrangedSubview(lastSticker)
-                        lastSticker.removeFromSuperview()
-                    }
-                }
+            // Очищаем все текущие стикеры
+            mainVC.stickersStackView.arrangedSubviews.forEach { view in
+                mainVC.stickersStackView.removeArrangedSubview(view)
+                view.removeFromSuperview()
             }
+            
+            // Добавляем новые стикеры по количеству выбранных категорий
+            for _ in 0..<CitataManager.shared.selectedCategories.count {
+                mainVC.addSticker()
+            }
+            
+            // Показываем индикатор загрузки
             let loader = UIActivityIndicatorView(style: .large)
             loader.center = mainVC.view.center
             loader.startAnimating()
             mainVC.view.addSubview(loader)
+            
+            // Загружаем цитаты для новых категорий
             CitataManager.shared.loadCitatesForCategories {
-                loader.removeFromSuperview()
-                CitataManager.shared.fillStickers(in: mainVC.stickersStackView)
+                DispatchQueue.main.async {
+                    loader.removeFromSuperview()
+                    CitataManager.shared.fillStickers(in: mainVC.stickersStackView)
+                }
             }
-            navigationController?.popViewController(animated: true)
         }
+        
+        navigationController?.popViewController(animated: true)
     }
+    
+//    @objc func doneButtonTapped() {
+//        let defaults = UserDefaults.standard
+//        let currentSavedCategories = defaults.stringArray(forKey: "SelectedCategories") ?? []
+//        let previousCategories = CitataManager.shared.selectedCategories
+//        if currentSavedCategories == previousCategories {
+//            print("Категории не изменились — обновление не требуется")
+//            navigationController?.popViewController(animated: true)
+//            return
+//        }
+//        CitataManager.shared.saveSelectedCategories()
+//        if let mainVC = navigationController?.viewControllers.first(where: { $0 is MainViewController }) as? MainViewController {
+//            let difference = CitataManager.shared.selectedCategories.count - mainVC.stickersStackView.arrangedSubviews.count
+//            if difference > 0 {
+//                for _ in 0..<difference {
+//                    mainVC.addSticker()
+//                }
+//            } else if difference < 0 {
+//                for _ in 0..<abs(difference) {
+//                    if let lastSticker = mainVC.stickersStackView.arrangedSubviews.last {
+//                        mainVC.stickersStackView.removeArrangedSubview(lastSticker)
+//                        lastSticker.removeFromSuperview()
+//                    }
+//                }
+//            }
+//            let loader = UIActivityIndicatorView(style: .large)
+//            loader.center = mainVC.view.center
+//            loader.startAnimating()
+//            mainVC.view.addSubview(loader)
+//            CitataManager.shared.loadCitatesForCategories {
+//                loader.removeFromSuperview()
+//                CitataManager.shared.fillStickers(in: mainVC.stickersStackView)
+//            }
+//            navigationController?.popViewController(animated: true)
+//        }
+//    }
 
     
     //MARK: - Lifecycle
